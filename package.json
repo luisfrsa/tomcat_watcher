@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "beeper": "^1.1.1",
+    "chokidar": "^2.0.2",
+    "node-cmd": "^3.0.0"
+  }
+}
