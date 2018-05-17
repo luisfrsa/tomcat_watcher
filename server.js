@@ -10,15 +10,16 @@ let clock_time;
 
 let clean = true;
 let deleteWar = true;
-let skipTests = false;
+let skipTests = true;
 let extWatch = "**/*.java";
 let warName = "avserviceJson.war";
-let dirWatch = "C:/Users/luis.alves/Documents/projetos/brk/BRKSite/";
-let projectDir = "C:/Users/luis.alves/Documents/projetos/brk/BRKSite/";
+let dirWatch = "C:/Users/allan.peres/Documents/BRKAmbiental/BRKSite/";
+let projectDir = "C:/Users/allan.peres/Documents/BRKAmbiental/BRKSite/";
 let targetDir = "target/" + warName;
 let tomcatDir = 'C:/apache-tomcat-8.5.12/';
 tomcatDir = 'C:/DB1/SERVERS/jboss-eap-6.4/oambiental/';
 let targetWarFolder = tomcatDir + "deployments/";
+let beep = true;
 
 let arrCmds = [
     'echo "------------------------------------------------------"',
@@ -44,7 +45,6 @@ function initWatch() {
 
 function loop(index) {
     nodeCmd.get(arrCmds[index], (err, data, stderr) => {
-        console.log(arrCmds[index]);
         console.log(data);
         time = 500;
         if ((index + 1) < arrCmds.length) {
@@ -52,11 +52,15 @@ function loop(index) {
                 loop(index + 1);
             }, time);
         } else {
-            setTimeout(() => {
-                beeper();
-            }, 4000);
-            console.log("Executado em " + ((new Date().getTime() - clock_time.getTime()) / 1000).toFixed(2) + "s");
-            busy = false;
+            while(busy) {
+                if (checkFileExists()) {
+                    console.log("Executado em " + ((new Date().getTime() - clock_time.getTime()) / 1000).toFixed(2) + "s");
+                    if (beep) {
+                        beeper();
+                    }
+                    busy = false;
+                }
+            }
         }
     });
 
@@ -105,6 +109,14 @@ function killTomcat() {
         'FOR /F "tokens=5 delims= " %P IN (' + "'" + 'netstat -a -n -o ^| findstr : 8080' + "'" + ') DO TaskKill.exe /PID %P /T /F',
     ];
     runCmf(arrKillTomcat);
+}
+function checkFileExists() {
+	let fs = require('fs');
+    if (fs.existsSync(targetWarFolder + warName + '.deployed')) {
+        console.log('Server deployed');
+		return true;
+	}
+	return false;
 }
 
 initTomcat();
