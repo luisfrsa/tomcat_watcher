@@ -1,51 +1,53 @@
-var chokidar = require('chokidar');
-var nodeCmd = require('node-cmd');
-var beeper = require('beeper');
+let chokidar = require('chokidar');
+let nodeCmd = require('node-cmd');
+let beeper = require('beeper');
 
-var busy = false;
-var reRun = false;
-var watcher;
-var handleTimeout;
-var clock_time;
+let busy = false;
+let reRun = false;
+let watcher;
+let handleTimeout;
+let clock_time;
 
-var clean = false;
-var deleteWar = false;
-var extWatch = "**/*.java";
-var warName = "superar-server-rest.war";
-var dirWatch = "C:/Users/luis.alves/projetos/sicoob/superar/superar-backend/";
-var projectDir = "C:/Users/luis.alves/projetos/sicoob/superar/superar-backend/";
-var targetDir = "superar-server-app/target/" + warName;
-var tomcatDir = 'C:/apache-tomcat-8.5.12/';
+let clean = true;
+let deleteWar = true;
+let skipTests = false;
+let extWatch = "**/*.java";
+let warName = "avserviceJson.war";
+let dirWatch = "C:/Users/luis.alves/Documents/projetos/brk/BRKSite/";
+let projectDir = "C:/Users/luis.alves/Documents/projetos/brk/BRKSite/";
+let targetDir = "target/" + warName;
+let tomcatDir = 'C:/apache-tomcat-8.5.12/';
+tomcatDir = 'C:/DB1/SERVERS/jboss-eap-6.4/oambiental/';
+let targetWarFolder = tomcatDir + "deployments/";
 
-
-var arrCmds = [
+let arrCmds = [
     'echo "------------------------------------------------------"',
     'echo "Mvn Clean..."',
-    'mvn -f ' + projectDir + (clean ? ' clean ' : '') + ' install -DskipTests',
+    'mvn -f ' + projectDir + (clean ? ' clean ' : '') + ' install ' + (skipTests ? ' -DskipTests ' : ''),
     'echo "------------------------------------------------------"',
-    'echo "Delete war..." ' + (deleteWar ? ' && rm -f ' + tomcatDir + "webapps/" + warName : 'echo "Not deleted" '),
+    'echo "Delete war folder..." ' + (deleteWar ? ' && rm -rf ' + targetWarFolder +"*"  : 'echo "Not deleted" '),
     'echo "Copy war..."',
-    'cp ' + projectDir + targetDir + ' ' + tomcatDir + "webapps",
+    'cp ' + projectDir + targetDir + ' ' + targetWarFolder,
     'echo "------------------------------------------------------"',
     'echo ".::DONE::."'
 ];
 
 function initWatch() {
     watcher = chokidar.watch(dirWatch + extWatch, { ignored: /^\./, persistent: true });
+    
     watcher
-        .on('add', function (path) { change(path);})
-        .on('change', function (path) { change(path); console.log('File', path, 'has been changed'); })
-        .on('unlink', function (path) { change(path); console.log('File', path, 'has been removed'); })
-        .on('error', function (error) { })
+        .on('add', (path) => { change(path); })
+        .on('change', (path) => { change(path); console.log('File', path, 'has been changed'); })
+        .on('unlink', (path) => { change(path); console.log('File', path, 'has been removed'); })
+        .on('error', (error) => { console.log("Error", error) })
 }
 
 function loop(index) {
     nodeCmd.get(arrCmds[index], (err, data, stderr) => {
-        // console.log(arrCmds[index]);
+        console.log(arrCmds[index]);
         console.log(data);
         time = 500;
         if ((index + 1) < arrCmds.length) {
-            // if (arrCmds[index].indexOf('startup.bat') !== -1) {time = 1000;}
             setTimeout(() => {
                 loop(index + 1);
             }, time);
@@ -60,9 +62,9 @@ function loop(index) {
 
 }
 setInterval(() => {
-    if(reRun && !busy){
-        reRun = false;    
-        initCmd();    
+    if (reRun && !busy) {
+        reRun = false;
+        initCmd();
     }
 }, 4000);
 
@@ -70,13 +72,13 @@ function change(path) {
     if (!busy) {
         clearTimeout(handleTimeout);
         handleTimeout = setTimeout(initCmd, 4000);
-    }else{
+    } else {
         beeper();
         beeper();
         reRun = true;
     }
 }
-function initCmd(){
+function initCmd() {
     console.log('run loop()');
     busy = true;
     clock_time = new Date();
@@ -89,7 +91,7 @@ function runCmf(arrCmd) {
 }
 function initTomcat() {
 
-    var arrTomct = [
+    let arrTomct = [
         'echo "------------------------------------------------------"',
         'echo "Init server" ',
         tomcatDir + 'bin/startup.bat jpda start',
@@ -97,7 +99,7 @@ function initTomcat() {
     runCmf(arrTomct);
 }
 function killTomcat() {
-    var arrKillTomcat = [
+    let arrKillTomcat = [
         'echo "------------------------------------------------------"',
         'echo "Kill 8080"',
         'FOR /F "tokens=5 delims= " %P IN (' + "'" + 'netstat -a -n -o ^| findstr : 8080' + "'" + ') DO TaskKill.exe /PID %P /T /F',
