@@ -13,8 +13,8 @@ let deleteWar = true;
 let skipTests = true;
 let extWatch = "**/*.java";
 let warName = "avserviceJson.war";
-let dirWatch = "C:/Users/allan.peres/Documents/BRKAmbiental/BRKSite/";
-let projectDir = "C:/Users/allan.peres/Documents/BRKAmbiental/BRKSite/";
+let dirWatch = "C:/Users/luis.alves/Documents/projetos/brk/BRKSite/";
+let projectDir = dirWatch;
 let targetDir = "target/" + warName;
 let tomcatDir = 'C:/apache-tomcat-8.5.12/';
 tomcatDir = 'C:/DB1/SERVERS/jboss-eap-6.4/oambiental/';
@@ -49,18 +49,22 @@ function loop(index) {
         time = 500;
         if ((index + 1) < arrCmds.length) {
             setTimeout(() => {
+                if(withoutError()){
                 loop(index + 1);
+                }
             }, time);
         } else {
-            while(busy) {
+            let verificaUpInverval = setInterval(() => {
                 if (checkFileExists()) {
                     console.log("Executado em " + ((new Date().getTime() - clock_time.getTime()) / 1000).toFixed(2) + "s");
                     if (beep) {
                         beeper();
                     }
+                    clearInterval(verificaUpInverval);
                     busy = false;
                 }
-            }
+            }, 1000);
+          
         }
     });
 
@@ -117,6 +121,11 @@ function checkFileExists() {
 		return true;
 	}
 	return false;
+}
+
+//TODO: fazer validação de erros
+function withoutError(){
+    return true;
 }
 
 initTomcat();
